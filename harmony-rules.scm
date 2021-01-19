@@ -103,6 +103,12 @@
 	    automaticChords
 	    splitVoices))
 
+(set-current-module-documentation!
+ "Module defining functions used to analyse harmony.
+
+It also defines music functions to be used in Lilypond,
+\\checkHarmonyRules, \\automaticChords, \\splitVoices.")
+
 (define-method (write-short o)
   "Shortcut without port."
   (write-format o (current-output-port) #f))
