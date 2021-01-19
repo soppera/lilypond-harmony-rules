@@ -1,0 +1,71 @@
+\input texinfo
+
+@c (texinfo) First Node
+
+@c %**start of header
+@setfilename harmony-rules.info
+@settitle Harmony Rules
+@c %**end of header
+
+@copying
+Harmony Rules.
+
+Copyright @copyright{} 2020 Stéphane SOPPERA.
+@end copying
+
+@titlepage
+@title Harmony Rules
+
+@c Start the copyright page.
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@c Output the TOC.
+@contents
+
+@ifnottex
+@node Top
+@top Harmony Rules
+
+Harmony Rules Lilypond plugin.
+@end ifnottex
+
+Additional general information.
+
+@menu
+* API Reference:: Reference of API
+
+Indices
+* Concept Index::         Concept Index
+* Procedure Index:: Procedure Index
+* Type Index:: Type Index
+
+@detailmenu
+--- The Detailed Node Listing ---
+
+API Reference
+
+* Music Functions::
+* Procedures::
+* Generic Functions::
+* Classes::
+@end detailmenu
+@end menu
+
+@node API Reference
+@chapter API Reference
+
+@cindex API reference
+@cindex scheme API
+
+@macro defgoopmethod{name, args, types}
+@ --- Method: \name\ \args\
+@fnindex \name\ \types\
+@indentedblock 
+@end macro
+
+@macro enddefgoopmethod
+@end indentedblock
+@end macro

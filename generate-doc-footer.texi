@@ -1,0 +1,16 @@
+@node Concept Index
+@unnumbered Concept Index
+
+@printindex cp
+
+@node Procedure Index
+@unnumbered Procedure Index
+
+@printindex fn
+
+@node Type Index
+@unnumbered Type Index
+
+@printindex tp
+
+@bye
