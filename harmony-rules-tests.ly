@@ -16,6 +16,7 @@
 
 \version "2.20.0"
 
+#(ly:set-option 'relative-includes #t)
 \include "local-load-path.ly"
 
 \header { tagline = ##f }
