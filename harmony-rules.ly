@@ -1,6 +1,15 @@
 \version "2.20.0"
 
+%% Make sure we use relatives paths for the library.
+#(define harmony-rules--initial-relative-includes
+  (ly:get-option 'relative-includes))
+#(ly:set-option 'relative-includes #t)
+
 \include "local-load-path.ly"
+
+%% Resets relative path mode to the including file behavior.
+#(ly:set-option 'relative-includes
+  harmony-rules--initial-relative-includes)
 
 #(use-modules ((harmony-rules)
 	       #:select (checkHarmonyRules
