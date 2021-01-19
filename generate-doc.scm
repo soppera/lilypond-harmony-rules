@@ -110,6 +110,7 @@ Returns #t if the documentation was printed; else #f."
   (object-unique-id #:init-thunk make-hash-table #:getter object-unique-id)
   (unique-ids #:init-thunk make-hash-table #:getter unique-ids)
   (object-is-public #:init-thunk make-hash-table #:getter object-is-public)
+  (module-documentation #:init-value #f #:accessor module-documentation)
   (generics #:init-value '() #:accessor generics)
   (generic-is-partial #:init-thunk make-hash-table #:getter generic-is-partial)
   (classes #:init-value '() #:accessor classes)
@@ -416,6 +417,12 @@ Returns #t if the documentation was printed; else #f."
       "Returns a lambda that takes a pair and call a method with MMAP
 as first argument, then the car of the pair and finally its cdr."
       (lambda (p) (fn mmap (car p) (cdr p))))
+
+    (if (module-documentation mmap)
+        (begin
+          (display (module-documentation mmap))
+          (newline) (newline)))
+    
     (display "@node Music Functions\n")
     (display "@section Music Functions\n")
     (for-each (wrap-fn-call display-music-functions)
@@ -454,6 +461,9 @@ as first argument, then the car of the pair and finally its cdr."
     (define (unbound? v) (eq? v unbound))
     (define (car-symbol-less? a b)
       (string< (symbol->string (car a)) (symbol->string (car b))))
+
+    (set! (module-documentation mmap) (object-property mod 'documentation))
+    
     (hash-for-each
      (lambda (k var)
        (let ((value (if (variable-bound? var)
