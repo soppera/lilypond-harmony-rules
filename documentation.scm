@@ -17,7 +17,8 @@
 (define-module (documentation)
   #:use-module (oop goops)
   #:export (define-macro-with-doc
-             define-class-with-doc))
+             define-class-with-doc
+             set-current-module-documentation!))
 
 (define-macro (define-macro-with-doc name-args doc . body)
   `(begin
@@ -40,3 +41,8 @@ object property."
      (define-class ,class ,supers . ,rest)
      (set-object-property! ,class 'documentation ,doc)
      *unspecified*))
+
+(define (set-current-module-documentation! doc)
+  "Sets the 'documentation object-property of the current module to DOC."
+  (set-object-property! (current-module) 'documentation doc))
+
