@@ -20,6 +20,11 @@
   #:use-module (oop goops)
   #:use-module (test-tools))
 
+;; In Guile 2.2, local-eval is not available by default. And in Guile
+;; 1.8, (ice-9 local-eval) does not exist.
+(if (string>= (major-version) "2")
+    (use-modules (ice-9 local-eval)))
+
 ;; We can't use functions not defined in modules here so we redefine
 ;; (key) function.
 (define major '((0 . 0) (1 . 0) (2 . 0) (3 . 0) (4 . 0) (5 . 0) (6 . 0)))
@@ -258,7 +263,7 @@
             (want (caddr test))
             (got (pitches->interval p1 p2)))
        (set! musics (cons music musics))
-       (print (format "~a ~a -> ~a" p1 p2 got))
+       (display (format "~a ~a -> ~a" p1 p2 got))
        (newline)
        (append! (ly:music-property music 'elements)
                 (list

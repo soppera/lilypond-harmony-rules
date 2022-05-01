@@ -129,7 +129,10 @@ It also defines music functions to be used in Lilypond,
   "Default method calling (write)."
   (write o port))
 
-(define-method (write-format (o <Prob>) port indent)
+;; Lilypond 2.23 does not define <Prob> as a public symbol.
+(define <LyMusicClass> (class-of (ly:make-music 'x)))
+
+(define-method (write-format (o <LyMusicClass>) port indent)
   "Display @code{ly:music} specifically.
 
 All other types are printed using @code{write}."
@@ -302,7 +305,7 @@ The supported parameters are:
     (string-join (reverse strings) "")))
 
 (define (dump-all music)
-  (print (format-music music)))
+  (display (format-music music)))
 
 (define-public (best-duration-of-length moment)
   "Return a @code{ly:duration} from the input length as @code{ly:moment}.
@@ -507,10 +510,15 @@ The input music is modified to expand repeats."
           (push! (make <timed-key> #:moment start-t #:music music)
                  keys)
           start-t)
-         ((and (eq? name 'ContextSpeccedMusic)
-               (eq? (ly:music-property music 'context-type) 'Timing)
-               (eq? (ly:music-property elt 'name) 'PropertySet)
-               (eq? (ly:music-property elt 'symbol) 'whichBar))
+         ((or
+           ;; Lilypond 2.23 uses 'BarEvent with 'bar-type.
+           (eq? name 'BarEvent)
+           ;; Lilypond <= 2.22 uses 'ContextSpeccedMusic of type
+           ;; 'Timing with property 'whichBar.
+           (and (eq? name 'ContextSpeccedMusic)
+                (eq? (ly:music-property music 'context-type) 'Timing)
+                (eq? (ly:music-property elt 'name) 'PropertySet)
+                (eq? (ly:music-property elt 'symbol) 'whichBar)))
           (push! start-t bars)
           start-t)
          ((music-is-of-type? music 'rhythmic-event)
@@ -1621,10 +1629,10 @@ used to identify major and minor keys."
 			(voice2 p-consonance)
 			(moment-index p-consonance)))
 	(col (case (kind p-consonance)
-	       ((open) => '(color 1.0 0.0 0.0))
-	       ((hidden) => '(color 0.74 0.0 1.0))
-	       (else => (error (format "unknown kind ~a"
-				       (kind p-consonance)))))))
+	       ((open) '(color 1.0 0.0 0.0))
+	       ((hidden) '(color 0.74 0.0 1.0))
+	       (else (error (format "unknown kind ~a"
+                                    (kind p-consonance)))))))
     (set! (ly:music-property n1 'tweaks) (list col))
     (set! (ly:music-property n2 'tweaks) (list col))
     (ly:input-warning (ly:music-property n1 'origin)
