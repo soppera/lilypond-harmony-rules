@@ -33,33 +33,56 @@
   #:use-module (ice-9 rdelim)
   #:use-module (ice-9 regex))
 
+;; In Guile 2.2, ‘procedure-source’ seems to always return #f, but we
+;; now can use ‘program-lambda-list’ to get the data directly. This is
+;; not available in Guile 1.8 though.
+(define use-program-api #f)
+(if (string>= (major-version) "2")
+    (begin 
+      (use-modules (system vm program))
+      (set! use-program-api #t)))
+
+(define (proc-lambda-list proc)
+  "Returns a representation of the PROC arguments as they would appear
+in the corresponding ‘lambda’.
+
+Returns #f if not available."
+  (if use-program-api
+      ;; For Guile 2.2 where procedure-source does not work.
+      (program-lambda-list proc)
+      (let ((src (procedure-source proc)))
+        (cond
+         ((not src) #f)
+         ((not (pair? src)) (error "unexpected source" src))
+         ((not (eq? (car src) 'lambda))
+          (error "unexpected source first element" src))
+         ((not (pair? (cdr src)))
+          (error "unexpected source, not enough elements" src))
+         (else (cadr src))))))
+
 (define (display-arguments proc specializers optionals)
   "Print the arguments of the PROC with optional SPECIALIZERS.
 
 If SPECIALIZERS is #f, print only argument names.
 
-This function is based on the procedure source; it will only work if
-the source is available. Else it prints '?'.
+This function is based on the procedure source (Guile 1.8) or
+introspection (Guile 2.2); it may not alway work. It prints '?' if it
+fails..
 
-Returns the arguments names if found, else #f."
-  (let ((src (procedure-source proc)))
+Returns the arguments names are found, else #f."
+  (let ((lambda-list (proc-lambda-list proc)))
     (cond
-     ((not src)
+     ((not lambda-list)
+      (error "not found!" proc)
       (display " ?")
       #f)
-     ((not (pair? src))
-      (error "unexpected source" src))
-     ((not (eq? (car src) 'lambda))
-      (error "unexpected source first element" src))
-     ((not (pair? (cdr src)))
-      (error "unexpected source, not enough elements" src))
-     ((not (pair? (cadr src)))
+     ((not (pair? lambda-list))
       ;; We can have (lambda args ...).
       (display " ")
       (display (cadr src))
       #f)
      (else
-      (do ((head (cadr src) (cdr head))
+      (do ((head lambda-list (cdr head))
            (specializer specializers (and specializer
                                           (cdr specializer)))
            (optional optionals (and optional (cdr optional)))
@@ -234,9 +257,19 @@ Returns #t if the documentation was printed; else #f."
   (display "@defgoopmethod{")
   (display (symbol->string symbol))
   (display ", ")
-  (display-arguments (method-procedure meth)
-                     (method-specializers meth)
-                     #f)
+  (let ((proc (method-procedure meth)))
+    (if proc
+        (display-arguments proc
+                           (method-specializers meth)
+                           #f)
+        (begin
+          (let ((p (current-error-port)))
+            (display "WARNING: procedure not found for method " p)
+            (display meth p)
+            (display " of generic function " p)
+            (display (method-generic-function meth) p)
+            (newline p))
+          (display " ?"))))
   (display ",")
   (for-each
    (lambda (spec)
