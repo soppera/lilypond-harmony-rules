@@ -20,7 +20,7 @@ Toolbox to check harmony/contrepoint rules on Lilypond music.
 
 # License
 
-Copyright (C) 2020, 2021 Stéphane SOPPERA.
+Copyright (C) 2020, 2021, 2022 Stéphane SOPPERA.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
