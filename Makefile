@@ -33,10 +33,15 @@ GUILE_FLAGS=
 
 GENERATE_DOC_DEPS=docgen/generate.scm tools.scm graph.scm documentation.scm
 
+# Note that we use GUILE_AUTO_COMPILE=1 to force auto-compilation so
+# that function parameters are not lost with Guile 2.2. By default
+# Lilypond uses a mode where sources are not compiled and in that case
+# Guile can't extract the parameters's names correctly. See:
+# https://lists.gnu.org/archive/html/bug-lilypond/2022-05/msg00000.html
 info/harmony-rules.info: harmony-rules.scm generate-doc.ly $(GENERATE_DOC_DEPS)
 	-rm -rf info
 	mkdir info
-	lilypond $(LILYPOND_FLAGS) generate-doc.ly
+	GUILE_AUTO_COMPILE=1 lilypond $(LILYPOND_FLAGS) generate-doc.ly
 	makeinfo --info info/harmony-rules.texi -o info/
 
 .PHONY: test
