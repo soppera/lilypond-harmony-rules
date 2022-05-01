@@ -63,25 +63,58 @@ Returns #f if not available."
 (define (display-arguments proc specializers optionals)
   "Print the arguments of the PROC with optional SPECIALIZERS.
 
-If SPECIALIZERS is #f, print only argument names.
+If SPECIALIZERS is #f, print only argument names. If PROC is #f or its
+arguments can't be extracted but SPECIALIZERS is provided, use those
+with '?' as argument name.
 
 This function is based on the procedure source (Guile 1.8) or
 introspection (Guile 2.2); it may not alway work. It prints '?' if it
-fails..
+fails.
 
 Returns the arguments names are found, else #f."
-  (let ((lambda-list (proc-lambda-list proc)))
+  (if (and (not proc) (not specializers))
+      (error "parameters PROC and SPECIALIZERS can't be both #f")) 
+  (let ((lambda-list (and proc (proc-lambda-list proc))))
     (cond
      ((not lambda-list)
-      (error "not found!" proc)
-      (display " ?")
-      #f)
+      (cond
+       ((not specializers)
+        (error "can't get the parameter names of the procedure!" proc)
+        (display " ?")
+        #f)
+       (else 
+        ;; ‘specializers’ is provided but ‘lambda-list’ is #f.
+        (do ((specializer specializers (cdr specializer))
+             (optional optionals (and optional (cdr optional))))
+            ((cond
+              ((null? specializer) #t)
+              ((not (pair? specializer))
+               (display " . (? ")
+               (display (class-name specializer))
+               (display ")")
+               #t)
+              (else #f))
+             ;; We don't return any name.
+             #f)
+          (let ((has-specializer (not (eq? (car specializer) <top>)))
+                (is-optional (and optional (car optional))))
+            (display " ")
+            (if has-specializer (display "("))
+            (if is-optional (display "["))
+            (display "?")
+            (if is-optional (display "]"))
+            (if has-specializer
+                (begin
+                  (display " ")
+                  (display (class-name (car specializer)))
+                  (display ")"))))))))
      ((not (pair? lambda-list))
       ;; We can have (lambda args ...).
       (display " ")
-      (display (cadr src))
+      (display lambda-list)
       #f)
      (else
+      ;; ‘lambda-list’ is not #f
       (do ((head lambda-list (cdr head))
            (specializer specializers (and specializer
                                           (cdr specializer)))
@@ -258,10 +291,7 @@ Returns #t if the documentation was printed; else #f."
   (display (symbol->string symbol))
   (display ", ")
   (let ((proc (method-procedure meth)))
-    (if proc
-        (display-arguments proc
-                           (method-specializers meth)
-                           #f)
+    (if (not proc)
         ;; With Guile 2.2, methods using ’next-method’ return #f.
         (begin
           (let ((p (current-error-port)))
@@ -269,8 +299,10 @@ Returns #t if the documentation was printed; else #f."
             (display meth p)
             (display " of generic function " p)
             (display (method-generic-function meth) p)
-            (newline p))
-          (display " ?"))))
+            (newline p))))
+    (display-arguments proc
+                       (method-specializers meth)
+                       #f))
   (display ",")
   (for-each
    (lambda (spec)
