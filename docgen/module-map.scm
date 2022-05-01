@@ -25,7 +25,34 @@
   )
 
 (define-class-with-doc <module-map> ()
-  "An set of maps from module content to unique ids."
+  "An set of maps from module content to unique ids.
+
+Attributes:
+
+* ‘object-unique-id’: hash table object → string which maps every
+object in the module to a unique identifying string. Prefer using
+‘(unique-id map obj)’ to accessing ‘object-unique-id’ directly.
+
+* ‘unique-ids’: hash table string → bool. Contains #t for objects in
+’object-unique-id’. Use ‘hash-ref’ to use ‘equal?’.
+
+* ‘object-is-public’: hash table object → bool. Contains #t for public
+objects.
+
+* ‘module-documentation’: module documentation string, set by
+‘set-current-module-documentation!’.
+
+* ‘generics’: alist symbol → generic function.
+
+* ‘generic-is-partial’: hash table generic function → bool. #t if the
+generic has methods in other modules. Use ‘hashq-ref’.
+
+* ‘classes’: alist symbol → class.
+
+* ‘procedures’: alist symbol → procedure.
+
+* ‘macros’: alist symbol → macro.
+"
   (object-unique-id #:init-thunk make-hash-table #:getter object-unique-id)
   (unique-ids #:init-thunk make-hash-table #:getter unique-ids)
   (object-is-public #:init-thunk make-hash-table #:getter object-is-public)
@@ -56,7 +83,7 @@
                         unbound)))
          (define (register-object)
            ;; Store the public/private status.
-           (hashq-set! (object-is-public mmap) value (hashq-get-handle itf-obarray k))
+           (hashq-set! (object-is-public mmap) value (not (not (hashq-get-handle itf-obarray k))))
            ;; Declare a unique id.
            (set-unique-id! mmap k value))
          (cond

@@ -54,6 +54,7 @@ test-harmony-rules:
 .PHONY: test-docgen
 test-docgen:
 	${GUILE} ${GUILE_FLAGS} -L . docgen/introspection-tests.scm
+	${GUILE} ${GUILE_FLAGS} -L . docgen/module-map-tests.scm
 
 .PHONY: clean
 clean:
