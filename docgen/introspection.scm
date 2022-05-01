@@ -79,10 +79,15 @@ Returns the arguments names are found, else #f."
                   (display " ")
                   (display (class-name (car specializer)))
                   (display ")"))))))))
-     ((not (pair? lambda-list))
+     ((not (or (null? lambda-list) (pair? lambda-list)))
+      (let ((stderr (current-error-port)))
+        (display "lambda-list: " stderr)
+        (display lambda-list stderr)
+        (newline stderr))
       ;; We can have (lambda args ...).
-      (display " ")
+      (display " <")
       (display lambda-list)
+      (display ">")
       #f)
      (else
       ;; ‘lambda-list’ is not #f

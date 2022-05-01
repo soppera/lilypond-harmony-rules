@@ -25,6 +25,12 @@ doc: info/harmony-rules.info
 # Example: `make LILYPOND_FLAGS=-V …` activates debug mode of Lilypond.
 LILYPOND_FLAGS=
 
+# Variable that can be used to set the GUILE intepreter to use.
+GUILE=guile
+
+# Variable that can be use to set additional flags to GUILE.
+GUILE_FLAGS=
+
 GENERATE_DOC_DEPS=docgen/generate.scm tools.scm graph.scm documentation.scm
 
 info/harmony-rules.info: harmony-rules.scm generate-doc.ly $(GENERATE_DOC_DEPS)
@@ -34,11 +40,15 @@ info/harmony-rules.info: harmony-rules.scm generate-doc.ly $(GENERATE_DOC_DEPS)
 	makeinfo --info info/harmony-rules.texi -o info/
 
 .PHONY: test
-test: test-harmony-rules
+test: test-harmony-rules test-docgen
 
 .PHONY: test-harmony-rules
 test-harmony-rules:
 	lilypond $(LILYPOND_FLAGS) harmony-rules-tests.ly
+
+.PHONY: test-docgen
+test-docgen:
+	${GUILE} ${GUILE_FLAGS} -L . docgen/introspection-tests.scm
 
 .PHONY: clean
 clean:
