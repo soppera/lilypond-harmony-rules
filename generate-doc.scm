@@ -262,6 +262,7 @@ Returns #t if the documentation was printed; else #f."
         (display-arguments proc
                            (method-specializers meth)
                            #f)
+        ;; With Guile 2.2, methods using ’next-method’ return #f.
         (begin
           (let ((p (current-error-port)))
             (display "WARNING: procedure not found for method " p)
