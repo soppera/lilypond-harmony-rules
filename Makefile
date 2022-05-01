@@ -36,3 +36,7 @@ info/harmony-rules.info: harmony-rules.scm generate-doc.ly $(GENERATE_DOC_DEPS)
 .PHONY:
 test:
 	lilypond $(LILYPOND_FLAGS) harmony-rules-tests.ly
+
+.PHONY:
+clean:
+	-rm -rf info
