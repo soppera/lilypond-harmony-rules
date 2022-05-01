@@ -14,7 +14,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-(define-module (generate-doc)
+(define-module (docgen generate)
   #:export (write-texinfo)
   #:use-module ((lily)
                 #:select (ly:music-function?

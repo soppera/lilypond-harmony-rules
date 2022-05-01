@@ -20,7 +20,7 @@
 
 \header { tagline = ##f }
 
-#(use-modules (generate-doc))
+#(use-modules (docgen generate))
 
 #(let* ((basename (dirname (car (ly:input-file-line-char-column (*location*)))))
         (info-dir (string-append basename "/info")))
