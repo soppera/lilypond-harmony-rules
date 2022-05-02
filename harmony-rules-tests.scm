@@ -22,8 +22,10 @@
 
 ;; In Guile 2.2, local-eval is not available by default. And in Guile
 ;; 1.8, (ice-9 local-eval) does not exist.
-(if (string>= (major-version) "2")
-    (use-modules (ice-9 local-eval)))
+(cond-expand
+ (guile-2
+  (use-modules (ice-9 local-eval)))
+ (else))
 
 ;; We can't use functions not defined in modules here so we redefine
 ;; (key) function.

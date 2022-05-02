@@ -23,11 +23,12 @@
 ;; In Guile 2.2, ‘procedure-source’ seems to always return #f, but we
 ;; now can use ‘program-lambda-list’ to get the data directly. This is
 ;; not available in Guile 1.8 though.
-(define use-program-api #f)
-(if (string>= (major-version) "2")
-    (begin 
-      (use-modules (system vm program))
-      (set! use-program-api #t)))
+(cond-expand
+ (guile-2
+  (use-modules (system vm program))
+  (define use-program-api #t))
+ (else
+  (define use-program-api #f)))
 
 (define (proc-lambda-list proc)
   "Returns a representation of the PROC arguments as they would appear
