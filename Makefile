@@ -47,9 +47,11 @@ info/harmony-rules.info: harmony-rules.scm generate-doc.ly $(GENERATE_DOC_DEPS)
 .PHONY: test
 test: test-harmony-rules test-docgen
 
+# GUILE_AUTO_COMPILE=1 gives better stack traces with Guile 2.2, even
+# if not perfect.
 .PHONY: test-harmony-rules
 test-harmony-rules:
-	lilypond $(LILYPOND_FLAGS) harmony-rules-tests.ly
+	GUILE_AUTO_COMPILE=1 lilypond $(LILYPOND_FLAGS) harmony-rules-tests.ly
 
 .PHONY: test-docgen
 test-docgen:
