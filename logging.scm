@@ -46,18 +46,24 @@
   (define log-info
     (procedure->memoizing-macro
      (lambda (x env)
-       (let* ((the-loc (source-properties x))
-              (filename (assq-ref the-loc 'filename))
-              (line (and (assq-ref the-loc 'line) (1+ (assq-ref the-loc 'line))))
-              (column (and (assq-ref the-loc 'column) (1+ (assq-ref the-loc 'column)))))
-         `(begin
-            (display ,filename)
-            (display ":")
-            (display ,line)
-            (display ":")
-            (display ,column)
-            (display ": ")
-            (display ,(cadr x))
-            (newline)
-            (force-output))))))))
+       (cond
+        ((null? (cdr x))
+         `(scm-error 'wrong-number-of-args "log-info" "not enough arguments" '() '()))
+        ((not (null? (cddr x)))
+         `(scm-error 'wrong-number-of-args "log-info" "too many arguments" '() '()))
+        (else
+         (let* ((the-loc (source-properties x))
+                (filename (assq-ref the-loc 'filename))
+                (line (and (assq-ref the-loc 'line) (1+ (assq-ref the-loc 'line))))
+                (column (and (assq-ref the-loc 'column) (1+ (assq-ref the-loc 'column)))))
+           `(begin
+              (display ,filename)
+              (display ":")
+              (display ,line)
+              (display ":")
+              (display ,column)
+              (display ": ")
+              (display ,(cadr x))
+              (newline)
+              (force-output))))))))))
   
