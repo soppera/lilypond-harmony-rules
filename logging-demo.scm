@@ -34,3 +34,4 @@
               (lambda ()
                 (display "x: ")
                 (display x)))))
+(log-info "test")

@@ -43,20 +43,21 @@
                (newline)
                (force-output))))))))
  (guile ;; Version Guile 1.8.
-  (define-macro (log-info msg)
-    (let* ((loc (gensym))
-           (the-loc (source-properties msg))
-           (filename (assq-ref the-loc 'filename))
-           (line (and (assq-ref the-loc 'line) (1+ (assq-ref the-loc 'line))))
-           (column (and (assq-ref the-loc 'column) (1+ (assq-ref the-loc 'column)))))
-      `(begin
-         (display ,filename)
-         (display ":")
-         (display ,line)
-         (display ":")
-         (display ,column)
-         (display ": ")
-         (display ,msg)
-         (newline)
-         (force-output))))))
+  (define log-info
+    (procedure->memoizing-macro
+     (lambda (x env)
+       (let* ((the-loc (source-properties x))
+              (filename (assq-ref the-loc 'filename))
+              (line (and (assq-ref the-loc 'line) (1+ (assq-ref the-loc 'line))))
+              (column (and (assq-ref the-loc 'column) (1+ (assq-ref the-loc 'column)))))
+         `(begin
+            (display ,filename)
+            (display ":")
+            (display ,line)
+            (display ":")
+            (display ,column)
+            (display ": ")
+            (display ,(cadr x))
+            (newline)
+            (force-output))))))))
   
