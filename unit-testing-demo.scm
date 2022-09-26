@@ -29,11 +29,9 @@
 (use-modules (logging))
 
 (test-case "test1"
-  (log-info "1.")
-  (print-test-case)
+  (log-info (current-test-path))
   (test-case "sub-test1"
-    (log-info "2.1.")
-    (print-test-case))
-  (log-info "3.")
-  (print-test-case))
+    (log-info (current-test-path))
+    (log-info (current-test-path)))
+  (log-info (current-test-path)))
   

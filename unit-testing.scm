@@ -15,7 +15,7 @@
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 (define-module (unit-testing)
-  #:export (test-case print-test-case))
+  #:export (test-case current-test-path))
 
 ;; Usage:
 ;;
@@ -30,10 +30,12 @@
 (define *current-test-path* '())
 
 (cond-expand
+ ;; Guile >= 2.0 version.
  (guile-2
   (eval-when (expand load eval)
     (define (current-test-path) *current-test-path*)
     (define (set-current-test-path! path) (set! *current-test-path* path)))
+  
   (define-syntax test-case
     (syntax-rules ()
       ((_ name content ...)
@@ -43,10 +45,14 @@
              (lambda () (set-current-test-path! new-test-path))
              (lambda () content ...)
              (lambda () (set-current-test-path! previous-test-path))))))))
+
+ ;; Guile 1.8 version.
  (guile
   (use-modules (ice-9 syncase))
+
   (define (current-test-path) *current-test-path*)
   (define (set-current-test-path! path) (set! *current-test-path* path))
+  
   (define-macro (test-case name . content)
     (let ((previous-test-path-symb (make-symbol "previous-test-path"))
           (new-test-path-symb (make-symbol "new-test-path")))
@@ -57,7 +63,6 @@
              (lambda () ,@content)
              (lambda () (,set-current-test-path! ,previous-test-path-symb))))))))
 
-(define (print-test-case)
-  (display "current test: ")
-  (write (reverse *current-test-path*))
-  (newline))
+(define (current-test-path)
+  "Returns the path of the current test."
+  (reverse *current-test-path*))
