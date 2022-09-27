@@ -18,15 +18,10 @@
   #:use-module (lily)
   #:use-module (oop goops)
   #:use-module (harmony-rules)
-  #:export (test-start
-	    test-pretty-print
+  #:export (test-pretty-print
 	    make-note
 	    timed-note
 	    remove-length-and-origin))
-
-(define (test-start name)
-  (display (format "\n========== Test: ~a ==========\n" name))
-  (add-text #{ \markup { "Test:" $name } #}))
 
 (define (test-pretty-print obj indent)
   "Pretty print the input object with INDENT as prefix of each line."
