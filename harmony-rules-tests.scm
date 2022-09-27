@@ -30,10 +30,47 @@
 
 (define (first-element m) (car (ly:music-property m 'elements)))
 
-(define (for-each-test fn tests)
-  (for-each
-   (lambda (args) (apply fn args))
-   tests))
+(define (parse-music music-str)
+  (let* ((parser (ly:parser-clone '() '()))
+         (music (ly:parse-string-expression parser music-str "?" 0)))
+    (if (ly:parser-has-error? parser)
+        (error "failed to parse ~S" music-str))
+    music))
+
+(define (for-each-test . args)
+  (define (default-name . test-args)
+    (with-output-to-string
+      (lambda ()
+        (case (length test-args)
+          ((0) (error "empty test arguments"))
+          ((1) (write (car test-args)))
+          (else
+           (let loop ((l test-args) (first #t))
+             (if (not (null? (cdr l)))
+                 (begin
+                   (if (not first) (display " "))
+                   (write (car l))
+                   (loop (cdr l) #f)))))))))
+  (let ((n-args (length args))
+        (name default-name)
+        (fn #f)
+        (tests #f))
+    (case (length args)
+      ((2)
+       (set! fn (car args))
+       (set! tests (cadr args)))
+      ((3)
+       (set! name (car args))
+       (set! fn (cadr args))
+       (set! tests (caddr args)))
+      (else (scm-error 'wrong-number-of-args #f
+                       (format "Wrong number of arguments to ~S" for-each-test)
+                       #f #f)))
+    (for-each
+     (lambda (args)
+       (test-case (apply name args)
+         (apply fn args)))
+     tests)))
 
 (define mOne #{
 \new PianoStaff <<
@@ -253,8 +290,7 @@
  (test-case "pitches->interval"
    (for-each-test
     (lambda (p1 p2 want)
-      (test-case (format "~S ~S" p1 p2)
-        (test-that equal? (pitches->interval p1 p2) want)))
+      (test-that equal? (pitches->interval p1 p2) want))
     (list
      (list #{c#} #{c'#} (make <interval> #:number 8 #:quality 'perfect))
      (list #{c#} #{c,#} (make <interval> #:number 8 #:quality 'perfect))
@@ -276,106 +312,89 @@
      (list #{cis#} #{cis#} (make <interval> #:number 1 #:quality 'perfect)))))
 
  (test-case "compound? <interval>"
-   (for-each
-    (lambda (test)
-      (let* ((itv (car test))
-             (want (cdr test))
-             (got (compound? itv)))
-        (test-that equal? got want)))
-    (list (cons (make <interval> #:number 1 #:quality 'perfect) #f)
-          (cons (make <interval> #:number 2 #:quality 'minor) #f) 
-          (cons (make <interval> #:number 2 #:quality 'major) #f) 
-          (cons (make <interval> #:number 5 #:quality 'diminished) #f) 
-          (cons (make <interval> #:number 5 #:quality 'perfect) #f) 
-          (cons (make <interval> #:number 6 #:quality 'major) #f) 
-          (cons (make <interval> #:number 7 #:quality 'major) #f) 
-          (cons (make <interval> #:number 7 #:quality 'augmented) #f) 
-          (cons (make <interval> #:number 8 #:quality 'perfect) #f) 
-          (cons (make <interval> #:number 9 #:quality 'diminished) #t) 
-          (cons (make <interval> #:number 9 #:quality 'minor) #t) 
-          (cons (make <interval> #:number 9 #:quality 'major) #t) 
-          (cons (make <interval> #:number 10 #:quality 'major) #t))))
+   (for-each-test
+    (lambda (itv want)
+      (test-that equal? (compound? itv) want))
+    (list (list (make <interval> #:number 1 #:quality 'perfect) #f)
+          (list (make <interval> #:number 2 #:quality 'minor) #f) 
+          (list (make <interval> #:number 2 #:quality 'major) #f) 
+          (list (make <interval> #:number 5 #:quality 'diminished) #f) 
+          (list (make <interval> #:number 5 #:quality 'perfect) #f) 
+          (list (make <interval> #:number 6 #:quality 'major) #f) 
+          (list (make <interval> #:number 7 #:quality 'major) #f) 
+          (list (make <interval> #:number 7 #:quality 'augmented) #f) 
+          (list (make <interval> #:number 8 #:quality 'perfect) #f) 
+          (list (make <interval> #:number 9 #:quality 'diminished) #t) 
+          (list (make <interval> #:number 9 #:quality 'minor) #t) 
+          (list (make <interval> #:number 9 #:quality 'major) #t) 
+          (list (make <interval> #:number 10 #:quality 'major) #t))))
 
  (test-case "simple <interval>"
-   (for-each
-    (lambda (test)
-      (let* ((itv (car test))
-             (want (cdr test))
-             (got (simple itv)))
-        (test-that equal? got want)))
-    (list (cons (make <interval> #:number 1 #:quality 'perfect) (make <interval> #:number 1 #:quality 'perfect))
-          (cons (make <interval> #:number 2 #:quality 'minor) (make <interval> #:number 2 #:quality 'minor))
-          (cons (make <interval> #:number 2 #:quality 'major) (make <interval> #:number 2 #:quality 'major))
-          (cons (make <interval> #:number 5 #:quality 'diminished) (make <interval> #:number 5 #:quality 'diminished))
-          (cons (make <interval> #:number 5 #:quality 'perfect) (make <interval> #:number 5 #:quality 'perfect))
-          (cons (make <interval> #:number 6 #:quality 'major) (make <interval> #:number 6 #:quality 'major))
-          (cons (make <interval> #:number 7 #:quality 'major) (make <interval> #:number 7 #:quality 'major))
-          (cons (make <interval> #:number 7 #:quality 'augmented) (make <interval> #:number 7 #:quality 'augmented))
-          (cons (make <interval> #:number 8 #:quality 'perfect) (make <interval> #:number 8 #:quality 'perfect))
-          (cons (make <interval> #:number 15 #:quality 'perfect) (make <interval> #:number 8 #:quality 'perfect))
-          (cons (make <interval> #:number 9 #:quality 'diminished) (make <interval> #:number 2 #:quality 'diminished))
-          (cons (make <interval> #:number 9 #:quality 'minor) (make <interval> #:number 2 #:quality 'minor))
-          (cons (make <interval> #:number 9 #:quality 'major) (make <interval> #:number 2 #:quality 'major))
-          (cons (make <interval> #:number 10 #:quality 'major) (make <interval> #:number 3 #:quality 'major))
-          (cons (make <interval> #:number 19 #:quality 'perfect) (make <interval> #:number 5 #:quality 'perfect)))))
+   (for-each-test
+    (lambda (itv want)
+      (test-that equal? (simple itv) want))
+    (list (list (make <interval> #:number 1 #:quality 'perfect) (make <interval> #:number 1 #:quality 'perfect))
+          (list (make <interval> #:number 2 #:quality 'minor) (make <interval> #:number 2 #:quality 'minor))
+          (list (make <interval> #:number 2 #:quality 'major) (make <interval> #:number 2 #:quality 'major))
+          (list (make <interval> #:number 5 #:quality 'diminished) (make <interval> #:number 5 #:quality 'diminished))
+          (list (make <interval> #:number 5 #:quality 'perfect) (make <interval> #:number 5 #:quality 'perfect))
+          (list (make <interval> #:number 6 #:quality 'major) (make <interval> #:number 6 #:quality 'major))
+          (list (make <interval> #:number 7 #:quality 'major) (make <interval> #:number 7 #:quality 'major))
+          (list (make <interval> #:number 7 #:quality 'augmented) (make <interval> #:number 7 #:quality 'augmented))
+          (list (make <interval> #:number 8 #:quality 'perfect) (make <interval> #:number 8 #:quality 'perfect))
+          (list (make <interval> #:number 15 #:quality 'perfect) (make <interval> #:number 8 #:quality 'perfect))
+          (list (make <interval> #:number 9 #:quality 'diminished) (make <interval> #:number 2 #:quality 'diminished))
+          (list (make <interval> #:number 9 #:quality 'minor) (make <interval> #:number 2 #:quality 'minor))
+          (list (make <interval> #:number 9 #:quality 'major) (make <interval> #:number 2 #:quality 'major))
+          (list (make <interval> #:number 10 #:quality 'major) (make <interval> #:number 3 #:quality 'major))
+          (list (make <interval> #:number 19 #:quality 'perfect) (make <interval> #:number 5 #:quality 'perfect)))))
 
  (test-case "compound <interval>"
-   (for-each
-    (lambda (test)
-      (let* ((itv (car test))
-             (want (cdr test))
-             (got (compound itv)))
-        (test-that equal? got want)))
-    (list (cons (make <interval> #:number 1 #:quality 'perfect) (make <interval> #:number 8 #:quality 'perfect))
-          (cons (make <interval> #:number 2 #:quality 'minor) (make <interval> #:number 9 #:quality 'minor))
-          (cons (make <interval> #:number 2 #:quality 'major) (make <interval> #:number 9 #:quality 'major))
-          (cons (make <interval> #:number 5 #:quality 'diminished) (make <interval> #:number 12 #:quality 'diminished))
-          (cons (make <interval> #:number 5 #:quality 'perfect) (make <interval> #:number 12 #:quality 'perfect))
-          (cons (make <interval> #:number 6 #:quality 'major) (make <interval> #:number 13 #:quality 'major))
-          (cons (make <interval> #:number 7 #:quality 'major) (make <interval> #:number 14 #:quality 'major))
-          (cons (make <interval> #:number 7 #:quality 'augmented) (make <interval> #:number 14 #:quality 'augmented))
-          (cons (make <interval> #:number 8 #:quality 'perfect) (make <interval> #:number 15 #:quality 'perfect))
-          (cons (make <interval> #:number 15 #:quality 'perfect) (make <interval> #:number 15 #:quality 'perfect))
-          (cons (make <interval> #:number 9 #:quality 'diminished) (make <interval> #:number 9 #:quality 'diminished))
-          (cons (make <interval> #:number 9 #:quality 'minor) (make <interval> #:number 9 #:quality 'minor))
-          (cons (make <interval> #:number 9 #:quality 'major) (make <interval> #:number 9 #:quality 'major))
-          (cons (make <interval> #:number 10 #:quality 'major) (make <interval> #:number 10 #:quality 'major))
-          (cons (make <interval> #:number 19 #:quality 'perfect) (make <interval> #:number 19 #:quality 'perfect)))))
+   (for-each-test
+    (lambda (itv want)
+      (test-that equal? (compound itv) want))
+    (list (list (make <interval> #:number 1 #:quality 'perfect) (make <interval> #:number 8 #:quality 'perfect))
+          (list (make <interval> #:number 2 #:quality 'minor) (make <interval> #:number 9 #:quality 'minor))
+          (list (make <interval> #:number 2 #:quality 'major) (make <interval> #:number 9 #:quality 'major))
+          (list (make <interval> #:number 5 #:quality 'diminished) (make <interval> #:number 12 #:quality 'diminished))
+          (list (make <interval> #:number 5 #:quality 'perfect) (make <interval> #:number 12 #:quality 'perfect))
+          (list (make <interval> #:number 6 #:quality 'major) (make <interval> #:number 13 #:quality 'major))
+          (list (make <interval> #:number 7 #:quality 'major) (make <interval> #:number 14 #:quality 'major))
+          (list (make <interval> #:number 7 #:quality 'augmented) (make <interval> #:number 14 #:quality 'augmented))
+          (list (make <interval> #:number 8 #:quality 'perfect) (make <interval> #:number 15 #:quality 'perfect))
+          (list (make <interval> #:number 15 #:quality 'perfect) (make <interval> #:number 15 #:quality 'perfect))
+          (list (make <interval> #:number 9 #:quality 'diminished) (make <interval> #:number 9 #:quality 'diminished))
+          (list (make <interval> #:number 9 #:quality 'minor) (make <interval> #:number 9 #:quality 'minor))
+          (list (make <interval> #:number 9 #:quality 'major) (make <interval> #:number 9 #:quality 'major))
+          (list (make <interval> #:number 10 #:quality 'major) (make <interval> #:number 10 #:quality 'major))
+          (list (make <interval> #:number 19 #:quality 'perfect) (make <interval> #:number 19 #:quality 'perfect)))))
 
  (test-case "events!"
-   (for-each
-    (lambda (test)
-      (let* ((m (car test))
-             (want (cdr test))
-             (got (events! m)))
-        ;; FIXME: make this more generic (or implement a comparision that
-        ;; ignores some properties for music).
-        (define (make-comparable events)
-          (make <events>
-            #:notes
-            (map
-             (lambda (evt) (make <timed-note>
-                             #:moment (moment evt)
-                             #:music (remove-length-and-origin (music evt))))
-             (notes events))
-            #:keys
-            (map
-             (lambda (evt) (make <timed-key>
-                             #:moment (moment evt)
-                             #:music (remove-length-and-origin (music evt))))
-             (keys events))
-            #:bars
-            (bars events)))
-        (add-score (scorify-music (ly:music-deep-copy m)))
-        (let ((lines (string-split (test-pretty-print got "    ") #\newline)))
-          (for-each
-           (lambda (line)
-             (add-text #{ \markup { \column { \wordwrap { $line } } } #}))
-           lines))
-        (let ((comparable-got (make-comparable got))
-              (comparable-want (make-comparable want)))
-          (test-that equal? comparable-got comparable-want))))
-    (list (cons mOne
+   (for-each-test
+    (lambda (m opt-name want) (or opt-name m))
+    (lambda (m _ want)
+      ;; FIXME: make this more generic (or implement a comparision that
+      ;; ignores some properties for music).
+      (define (make-comparable events)
+        (make <events>
+          #:notes
+          (map
+           (lambda (evt) (make <timed-note>
+                           #:moment (moment evt)
+                           #:music (remove-length-and-origin (music evt))))
+           (notes events))
+          #:keys
+          (map
+           (lambda (evt) (make <timed-key>
+                           #:moment (moment evt)
+                           #:music (remove-length-and-origin (music evt))))
+           (keys events))
+          #:bars
+          (bars events)))
+      (test-that equal? (make-comparable
+                         (events! (if (string? m) (parse-music m) m)))
+                 (make-comparable want)))
+    (list (list mOne "mOne"
                 (make <events>
                   #:notes
                   (list (make <timed-note> #:moment (ly:make-moment 0) #:music (make-note #{a'#} 2))
@@ -389,7 +408,7 @@
                         (make <timed-note> #:moment (ly:make-moment 1/2) #:music (make-note #{b,#} 2))
                         (make <timed-note> #:moment (ly:make-moment 3/4) #:music (make-note #{c#} 3))
                         (make <timed-note> #:moment (ly:make-moment 7/8) #:music (make-note #{d#} 3)))))
-          (cons mFour
+          (list mFour "mFour"
                 (make <events>
                   #:notes
                   (list
@@ -417,7 +436,7 @@
                   (list (ly:make-moment 1)
                         (ly:make-moment 3)
                         (ly:make-moment 4))))
-          (cons #{ \repeat unfold 2 { c'1 d' } e'1 #}
+          (list "\\repeat unfold 2 { c'1 d' } e'1" #f
                 (make <events>
                   #:notes
                   (list
@@ -427,7 +446,7 @@
                    (make <timed-note> #:moment (ly:make-moment 3) #:music (make-note #{d'#} 0))
                    (make <timed-note> #:moment (ly:make-moment 4) #:music (make-note #{e'#} 0))
                    )))
-          (cons #{ c'4 d' e' \key d \major f' g' \key c \minor a' b' #}
+          (list "c'4 d' e' \\key d \\major f' g' \\key c \\minor a' b'" #f
                 (make <events>
                   #:notes
                   (list
@@ -442,7 +461,7 @@
                   (list
                    (make <timed-key> #:moment (ly:make-moment 3/4) #:music (key #{d#} major))
                    (make <timed-key> #:moment (ly:make-moment 5/4) #:music (key #{c#} minor)))))
-          (cons #{ << { c4 d e f } \figuremode { <6>4 <> s2 <5>4 } >> #}
+          (list "<< { c4 d e f } \\figuremode { <6>4 <> s2 <5>4 } >>" #f
                 (make <events>
                   #:notes
                   (list
@@ -454,7 +473,7 @@
                   (list
                    (make <timed-figure> #:moment (ly:make-moment 0) #:music (first-element #{ \figuremode { <6>4 } #}))
                    (make <timed-figure> #:moment (ly:make-moment 3/4) #:music (first-element #{ \figuremode { <5>4 } #})))))
-          (cons #{ { c4 4 8 8 f4 } #}
+          (list "{ c4 4 8 8 f4 }" #f
                 (make <events>
                   #:notes
                   (list
@@ -463,7 +482,7 @@
                    (make <timed-note> #:moment (ly:make-moment 1/2) #:music (make-note #{c#} 3))
                    (make <timed-note> #:moment (ly:make-moment 5/8) #:music (make-note #{c#} 3))
                    (make <timed-note> #:moment (ly:make-moment 3/4) #:music (make-note #{f#} 2)))))
-          (cons #{ { r4 c s d } #}
+          (list "{ r4 c s d }" #f
                 (make <events>
                   #:notes
                   (list
@@ -745,11 +764,7 @@
    (for-each
     (lambda (test)
       (test-case (car test)
-        (let ((key (let* ((parser (ly:parser-clone '() '()))
-                          (key (ly:parse-string-expression parser (car test) "?" 0)))
-                     (if (ly:parser-has-error? parser)
-                         (error "failed to parse ~S" (car test)))
-                     key)))
+        (let ((key (parse-music (car test))))
           (test-that (lambda (got want?) (want? got))
                      (key-pitch-alist key)
                      (cdr test)))))
