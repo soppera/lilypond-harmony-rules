@@ -48,7 +48,7 @@
 
 (define *errors* '())
 (define (errors) *errors*)
-(define (push-errors! err)
+(define (push-error! err)
   (set! *errors* (cons err *errors*))
   (let* ((source (assq-ref err 'source))
          (filename (or (assq-ref source 'filename) "?"))
@@ -123,7 +123,7 @@
                  (catch #t
                    (lambda () content ...)
                    (lambda (key . args)
-                     (push-errors!
+                     (push-error!
                       (list
                        (cons 'source '())
                        (cons 'stack stack)
@@ -160,7 +160,7 @@
                                        port)))))
                (let ((g got) (w want))
                  (if (not (pred g w))
-                     (push-errors!
+                     (push-error!
                       (list
                        (cons 'source 'loc)
                        (cons 'test-path (reverse *current-test-path*))
@@ -195,11 +195,11 @@
   (define-macro (test-case name . content)
     (let ((previous-test-path-symb (make-symbol "previous-test-path"))
           (new-test-path-symb (make-symbol "new-test-path"))
-          (push-errors!-symb (make-symbol "push-errors!"))
+          (push-error!-symb (make-symbol "push-error!"))
           (stack-symb (make-symbol "stack")))
       `(let ((,previous-test-path-symb (,current-test-path))
              (,new-test-path-symb (cons ,name (,current-test-path)))
-             (,push-errors!-symb ,push-errors!))
+             (,push-error!-symb ,push-error!))
          (dynamic-wind
              (lambda ()
                (if (not ,previous-test-path-symb)
@@ -210,7 +210,7 @@
                  (catch #t
                    (lambda () ,@content)
                    (lambda (key . args)
-                     (,push-errors!-symb
+                     (,push-error!-symb
                       (list
                        (cons 'source '())
                        (cons 'stack (make-stack #t))
@@ -240,15 +240,15 @@
                   (g-symb (make-symbol "g"))
                   (w-symb (make-symbol "w"))
                   (current-test-path-symb (make-symbol "current-test-path"))
-                  (push-errors!-symb (make-symbol "push-errors!")))
+                  (push-error!-symb (make-symbol "push-error!")))
              (define (to-string expr)
                (with-output-to-string
                  (lambda () (write expr))))
              `(let ((,g-symb ,got) (,w-symb ,want)
-                    (,push-errors!-symb ,push-errors!)
+                    (,push-error!-symb ,push-error!)
                     (,current-test-path-symb ,current-test-path))
                 (if (not (,pred ,g-symb ,w-symb))
-                    (,push-errors!-symb
+                    (,push-error!-symb
                      (list
                       (cons 'source ',the-loc)
                       (cons 'test-path (reverse (,current-test-path-symb)))
