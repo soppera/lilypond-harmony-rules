@@ -747,12 +747,12 @@
  (test-case "key-pitch-alist"
    (for-each
     (lambda (test)
-      (let ((key (let* ((parser (ly:parser-clone '() '()))
-                        (key (ly:parse-string-expression parser (car test) "noname" 1)))
-                   (if (ly:parser-has-error? parser)
-                       (error "failed to parse ~S" (car test)))
-                   key)))
-        (test-case (car test)
+      (test-case (car test)
+        (let ((key (let* ((parser (ly:parser-clone '() '()))
+                          (key (ly:parse-string-expression parser (car test) "?" 0)))
+                     (if (ly:parser-has-error? parser)
+                         (error "failed to parse ~S" (car test)))
+                     key)))
           (test-that (lambda (got want?) (want? got))
                      (key-pitch-alist key)
                      (cdr test)))))
