@@ -41,6 +41,17 @@
   (define-macro (eval-when conds . code)
     `(begin ,@code))))
 
+(define (kill-test msg)
+  (let ((ly:error-var (module-variable (resolve-module '(lily)) 'ly:error)))
+    (if ly:error-var
+        ((variable-ref ly:error-var) msg)
+        (begin
+          (flush-all-ports)
+          (display msg (current-error-port))
+          (newline (current-error-port))
+          (force-output (current-error-port))
+          (exit 1)))))
+
 ;; Define symbols used by macros
 (define *state* 'not-started)
 (define (state) *state*)
@@ -61,6 +72,11 @@
          (line (cond ((assq-ref source 'line) => 1+) (else "?")))
          (column (cond ((assq-ref source 'column) => 1+) (else "?")))
          (*err* (current-error-port)))
+    (if (not (eq? *state* 'started))
+        (kill-test (call-with-output-string
+                    (lambda (port)
+                      (log-info "(push-error!) can't be used outside (tests)"
+                                port)))))
     (flush-all-ports)
     (newline *err*)
     (display filename *err*)
@@ -80,18 +96,13 @@
 
 (define (tests-done)
   (if (not (null? *errors*))
-      (let ((err (current-error-port)))
-        (flush-all-ports)
-        (newline err)
-        (display "** " err)
-        (display (length *errors*) err)
-        (display " errors in tests" err)
-        (newline err)
-        (force-output err)
-        (let ((ly:error-var (module-variable (resolve-module '(lily)) 'ly:error)))
-          (if ly:error-var
-              ((variable-ref ly:error-var) "** some tests failed **")
-              (exit 1))))))
+      (kill-test
+       (with-output-to-string
+         (lambda ()
+           (display "** ")
+           (display (length *errors*))
+           (display " errors in tests")
+           (display " **"))))))
 
 (cond-expand
  ;; Guile >= 2.0 version.
@@ -102,9 +113,9 @@
        (dynamic-wind
            (lambda ()
              (if (not (eq? *state* 'not-started))
-                 (error (call-with-output-string
-                         (lambda (port)
-                           (log-info "only one (tests) can be used" port)))))
+                 (kill-test (call-with-output-string
+                             (lambda (port)
+                               (log-info "only one (tests) can be used" port)))))
              (set! *state* 'started))
            (lambda () (begin content ...))
            (lambda ()
@@ -119,10 +130,10 @@
          (dynamic-wind
              (lambda ()
                (if (not (eq? *state* 'started))
-                   (error (call-with-output-string
-                           (lambda (port)
-                             (log-info "(test-case) can't be used outside (tests)"
-                                       port)))))
+                   (kill-test (call-with-output-string
+                               (lambda (port)
+                                 (log-info "(test-case) can't be used outside (tests)"
+                                           port)))))
                (set-current-test-path! new-test-path))
              (lambda ()
                (let ((stack #f))
@@ -160,10 +171,10 @@
                        (loc (datum->syntax s (syntax-source s))))
            #'(begin
                (if (not (eq? *state* 'started))
-                   (error (call-with-output-string
-                           (lambda (port)
-                             (log-info "(test-that) can't be used outside (tests)"
-                                       port)))))
+                   (kill-test (call-with-output-string
+                               (lambda (port)
+                                 (log-info "(test-that) can't be used outside (tests)"
+                                           port)))))
                (let ((g got) (w want))
                  (if (not (pred g w))
                      (push-error!
@@ -192,7 +203,7 @@
          (dynamic-wind
              (lambda ()
                (if (not (eq? (,state-symb) 'not-started))
-                   (error "only one (tests) can be used"))
+                   (kill-test "only one (tests) can be used"))
                (,set-state!-symb 'started))
              (lambda () ,@content)
              (lambda ()
@@ -209,7 +220,7 @@
          (dynamic-wind
              (lambda ()
                (if (not ,previous-test-path-symb)
-                   (error "(test-case) can't be used outside (tests)"))
+                   (kill-test "(test-case) can't be used outside (tests)"))
                (,set-current-test-path! ,new-test-path-symb))
              (lambda ()
                (let ((,stack-symb #f))
