@@ -35,3 +35,7 @@
                 (display "x: ")
                 (display x)))))
 (log-info "test")
+(let ((s (call-with-output-string
+          (lambda (port)
+            (log-info "something" port)))))
+  (display "<content>") (write s) (display "</content>") (newline))
