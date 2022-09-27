@@ -253,50 +253,37 @@
 
 (tests
  (test-case "(pitches->interval)"
-   (let ((musics (list #{\clef "bass"#})))
-     (for-each
-      (lambda (test)
-        (let* ((p1 (car test))
-               (p2 (cadr test))
-               (music
-                (make-music
-                 'EventChord
-                 'elements
-                 (list (make-note p1 0) (make-note p2 0))))
-               (want (caddr test))
-               (got (pitches->interval p1 p2)))
-          (set! musics (cons music musics))
-          (display (format "~a ~a -> ~a" p1 p2 got))
-          (newline)
-          (append! (ly:music-property music 'elements)
-                   (list
-                    (make-music
-                     'TextScriptEvent
-                     'direction 1
-                     'text (format "~a/~a"
-                                   (number got)
-                                   (quality got)))))
-          (test-that equal? got want)))
-      (list
-       (list #{c#} #{c'#} (make <interval> #:number 8 #:quality 'perfect))
-       (list #{c#} #{c,#} (make <interval> #:number 8 #:quality 'perfect))
-       (list #{c,#} #{c'#} (make <interval> #:number 15 #:quality 'perfect))
-       (list #{c#} #{g#} (make <interval> #:number 5 #:quality 'perfect))
-       (list #{g,#} #{c#} (make <interval> #:number 4 #:quality 'perfect))
-       (list #{g#} #{c#} (make <interval> #:number 5 #:quality 'perfect))
-       (list #{c'#} #{g#} (make <interval> #:number 4 #:quality 'perfect))
-       (list #{c#} #{e#} (make <interval> #:number 3 #:quality 'major))
-       (list #{d#} #{f#} (make <interval> #:number 3 #:quality 'minor))
-       (list #{c#} #{b'#} (make <interval> #:number 14 #:quality 'major))
-       (list #{b'#} #{c#} (make <interval> #:number 14 #:quality 'major))
-       (list #{c#} #{b#} (make <interval> #:number 7 #:quality 'major))
-       (list #{b#} #{c#} (make <interval> #:number 7 #:quality 'major))
-       (list #{c#} #{b,#} (make <interval> #:number 2 #:quality 'minor))
-       (list #{b,#} #{c#} (make <interval> #:number 2 #:quality 'minor))
-       (list #{c#} #{deses#} (make <interval> #:number 2 #:quality 'diminished))
-       (list #{c#} #{cis#} (make <interval> #:number 1 #:quality 'augmented))
-       (list #{cis#} #{cis#} (make <interval> #:number 1 #:quality 'perfect))))
-     (add-score (scorify-music (ly:music-deep-copy (make-sequential-music (reverse musics)))))))
+   (for-each
+    (lambda (test)
+      (let* ((p1 (car test))
+             (p2 (cadr test))
+             (music
+              (make-music
+               'EventChord
+               'elements
+               (list (make-note p1 0) (make-note p2 0))))
+             (want (caddr test))
+             (got (pitches->interval p1 p2)))
+        (test-that equal? got want)))
+    (list
+     (list #{c#} #{c'#} (make <interval> #:number 8 #:quality 'perfect))
+     (list #{c#} #{c,#} (make <interval> #:number 8 #:quality 'perfect))
+     (list #{c,#} #{c'#} (make <interval> #:number 15 #:quality 'perfect))
+     (list #{c#} #{g#} (make <interval> #:number 5 #:quality 'perfect))
+     (list #{g,#} #{c#} (make <interval> #:number 4 #:quality 'perfect))
+     (list #{g#} #{c#} (make <interval> #:number 5 #:quality 'perfect))
+     (list #{c'#} #{g#} (make <interval> #:number 4 #:quality 'perfect))
+     (list #{c#} #{e#} (make <interval> #:number 3 #:quality 'major))
+     (list #{d#} #{f#} (make <interval> #:number 3 #:quality 'minor))
+     (list #{c#} #{b'#} (make <interval> #:number 14 #:quality 'major))
+     (list #{b'#} #{c#} (make <interval> #:number 14 #:quality 'major))
+     (list #{c#} #{b#} (make <interval> #:number 7 #:quality 'major))
+     (list #{b#} #{c#} (make <interval> #:number 7 #:quality 'major))
+     (list #{c#} #{b,#} (make <interval> #:number 2 #:quality 'minor))
+     (list #{b,#} #{c#} (make <interval> #:number 2 #:quality 'minor))
+     (list #{c#} #{deses#} (make <interval> #:number 2 #:quality 'diminished))
+     (list #{c#} #{cis#} (make <interval> #:number 1 #:quality 'augmented))
+     (list #{cis#} #{cis#} (make <interval> #:number 1 #:quality 'perfect)))))
 
  (test-case "(compound? <interval>)"
    (for-each
