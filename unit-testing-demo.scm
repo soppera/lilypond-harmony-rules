@@ -28,10 +28,14 @@
 (use-modules (unit-testing))
 (use-modules (logging))
 
-(test-case "test1"
-  (log-info (current-test-path))
-  (test-case "sub-test1"
-    (log-info (current-test-path))
-    (log-info (current-test-path)))
-  (log-info (current-test-path)))
+(tests
+ (test-case "test1"
+   (log-info (current-test-path))
+   (test-that = (+ 2 1) 4)
+   (test-case "sub-test1"
+     (log-info (current-test-path))
+     (test-that = 3 2)
+     (log-info (current-test-path)))
+   (test-that = (+ 2 1) 3)
+   (log-info (current-test-path))))
   
