@@ -47,7 +47,22 @@
   (define (set-current-test-path! path) (set! *current-test-path* path))
   (define *errors* '())
   (define (errors) *errors*)
-  (define (push-errors! err) (set! *errors* (cons err *errors*))))
+  (define (push-errors! err)
+    (set! *errors* (cons err *errors*))
+    (let* ((source (assq-ref err 'source))
+           (filename (or (assq-ref source 'filename) "?"))
+           (line (cond ((assq-ref source 'line) => 1+) (else "?")))
+           (column (cond ((assq-ref source 'column) => 1+) (else "?"))))
+      (display filename (current-error-port))
+      (display ":" (current-error-port))
+      (display line (current-error-port))
+      (display ":" (current-error-port))
+      (display column (current-error-port))
+      (display ": in test " (current-error-port))
+      (write (assq-ref err 'test-path))
+      (display ": ")
+      (display (assq-ref err 'message))
+      (newline))))
 
 (cond-expand
  ;; Guile >= 2.0 version.
@@ -66,6 +81,7 @@
            (lambda ()
              (set! *state* 'done)
              (display "errors: ") (write *errors*) (newline))))))
+
   (define-syntax test-case
     (syntax-rules ()
       ((_ name content ...)
@@ -116,7 +132,7 @@
                      (push-errors!
                       (list
                        (cons 'source 'loc)
-                       (cons 'test-path *current-test-path*)
+                       (cons 'test-path (reverse *current-test-path*))
                        (cons 'message
                              (string-append
                               "("
@@ -171,7 +187,8 @@
          (if (not (,pred ,g-symb ,w-symb))
              (,push-errors!-symb
               (list
-               (cons 'test-path (,current-test-path-symb))
+               (cons 'source '())
+               (cons 'test-path (reverse (,current-test-path-symb)))
                (cons 'message
                      (string-append
                       "(" ,(to-string pred)
