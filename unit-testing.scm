@@ -61,7 +61,25 @@
 (define (current-test-path)
   "Returns the path of the current test."
   *current-test-path*)
-(define (set-current-test-path! path) (set! *current-test-path* path))
+(define (set-current-test-path! path)
+  (let ((*err* (current-error-port)))
+    (flush-all-ports)
+    (if (and (not (null? *current-test-path*))
+             (or (null? path)
+                 (not (equal? (cdr path) *current-test-path*))))
+        (begin
+          (display "<<<<<<<< " *err*)
+          (write (reverse *current-test-path*) *err*)
+          (newline *err*)))
+    (if (and (not (null? path))
+             (or (null? *current-test-path*)
+                 (not (equal? (cdr *current-test-path*) path))))
+        (begin
+          (display ">>>>>>>> " *err*)
+          (write (reverse path) *err*)
+          (newline *err*)
+          (force-output *err*))))
+  (set! *current-test-path* path))
 
 (define *errors* '())
 (define (errors) *errors*)
