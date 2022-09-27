@@ -236,26 +236,26 @@
            (let* ((pred (cadr s))
                   (got (caddr s))
                   (want (cadddr s))
-                  (the-loc (source-properties s)))
-             (let ((g-symb (make-symbol "g"))
-                   (w-symb (make-symbol "w"))
-                   (current-test-path-symb (make-symbol "current-test-path"))
-                   (push-errors!-symb (make-symbol "push-errors!")))
-               (define (to-string expr)
-                 (with-output-to-string
-                   (lambda () (write expr))))
-               `(let ((,g-symb ,got) (,w-symb ,want)
-                      (,push-errors!-symb ,push-errors!)
-                      (,current-test-path-symb ,current-test-path))
-                  (if (not (,pred ,g-symb ,w-symb))
-                      (,push-errors!-symb
-                       (list
-                        (cons 'source ',the-loc)
-                        (cons 'test-path (reverse (,current-test-path-symb)))
-                        (cons 'message
-                              (string-append
-                               "(" ,(to-string pred)
-                               " " ,(to-string got) " " ,(to-string want) ") failed with "
-                               ,(to-string got) " = " (with-output-to-string (lambda () (write ,g-symb)))
-                               " and " ,(to-string want) " = " (with-output-to-string (lambda () (write ,w-symb)))))))))))))))))))
+                  (the-loc (source-properties s))
+                  (g-symb (make-symbol "g"))
+                  (w-symb (make-symbol "w"))
+                  (current-test-path-symb (make-symbol "current-test-path"))
+                  (push-errors!-symb (make-symbol "push-errors!")))
+             (define (to-string expr)
+               (with-output-to-string
+                 (lambda () (write expr))))
+             `(let ((,g-symb ,got) (,w-symb ,want)
+                    (,push-errors!-symb ,push-errors!)
+                    (,current-test-path-symb ,current-test-path))
+                (if (not (,pred ,g-symb ,w-symb))
+                    (,push-errors!-symb
+                     (list
+                      (cons 'source ',the-loc)
+                      (cons 'test-path (reverse (,current-test-path-symb)))
+                      (cons 'message
+                            (string-append
+                             "(" ,(to-string pred)
+                             " " ,(to-string got) " " ,(to-string want) ") failed with "
+                             ,(to-string got) " = " (with-output-to-string (lambda () (write ,g-symb)))
+                             " and " ,(to-string want) " = " (with-output-to-string (lambda () (write ,w-symb))))))))))))))))))
 
