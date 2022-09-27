@@ -32,6 +32,8 @@
  (test-case "test1"
    (test-that = (+ 2 1) 4)
    (test-case "sub-test1"
-     (test-that = 3 2))
+     (test-that = 3 2)
+     (/ 1 0)
+     (test-that = 3 6))
    (test-that = (+ 2 1) 3)))
   

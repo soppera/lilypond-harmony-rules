@@ -115,11 +115,16 @@
                (catch #t
                  (lambda () content ...)
                  (lambda (key . args)
-                   (display "** caught key: ")
-                   (write key)
-                   (display "; args: ")
-                   (write args)
-                   (newline))))
+                   (push-errors!
+                    (list
+                     (cons 'source 'loc)
+                     (cons 'test-path (reverse *current-test-path*))
+                     (cons 'message
+                           (string-append
+                            "an exception occurred with key: "
+                            (with-output-to-string (lambda () (write key)))
+                            " and args: "
+                            (with-output-to-string (lambda () (write args))))))))))
              (lambda ()
                (set-current-test-path! previous-test-path)))))))
 
@@ -179,15 +184,30 @@
                (,tests-done-symb))))))
   (define-macro (test-case name . content)
     (let ((previous-test-path-symb (make-symbol "previous-test-path"))
-          (new-test-path-symb (make-symbol "new-test-path")))
+          (new-test-path-symb (make-symbol "new-test-path"))
+          (push-errors!-symb (make-symbol "push-errors!")))
       `(let ((,previous-test-path-symb (,current-test-path))
-             (,new-test-path-symb (cons ,name (,current-test-path))))
+             (,new-test-path-symb (cons ,name (,current-test-path)))
+             (,push-errors!-symb ,push-errors!))
          (dynamic-wind
              (lambda ()
                (if (not ,previous-test-path-symb)
                    (error "(test-case) can't be used outside (tests)"))
                (,set-current-test-path! ,new-test-path-symb))
-             (lambda () ,@content)
+             (lambda ()
+               (catch #t
+                 (lambda () ,@content)
+                 (lambda (key . args)
+                   (,push-errors!-symb
+                    (list
+                     (cons 'source '())
+                     (cons 'test-path (reverse ,new-test-path-symb))
+                     (cons 'message
+                           (string-append
+                            "an exception occurred with key: "
+                            (with-output-to-string (lambda () (write key)))
+                            " and args: "
+                            (with-output-to-string (lambda () (write args))))))))))
              (lambda () (,set-current-test-path! ,previous-test-path-symb))))))
   (define-macro (test-that pred got want)
     (let ((g-symb (make-symbol "g"))
