@@ -30,10 +30,19 @@
 
 (tests
  (test-case "test1"
+   ;; Should fail.
    (test-that = (+ 2 1) 4)
    (test-case "sub-test1"
      (test-that = 3 2)
+     ;; Should be caught and converted to an error.
      (/ 1 0)
+     ;; Should not be reached because of the previous exception.
      (test-that = 3 6))
-   (test-that = (+ 2 1) 3)))
+   ;; Should pass.
+   (test-that = (+ 2 1) 3)
+   ;; Should pass.
+   (test-that eq? 'a (car '(a b c)))
+   ;; Should fail and be reached as the (/ 1 0) exception should be
+   ;; caught by parent test case.
+   (test-that eq? 'a (cadr '(a b c)))))
   

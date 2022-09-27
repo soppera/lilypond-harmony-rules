@@ -20,7 +20,13 @@
 
 ;; Usage:
 ;;
-;;
+;; (tests
+;;   (test-case "some test"
+;;     (test-that eq? 'a (car '(a b c)))
+;;     (test-case "sub test"
+;;       (test-that = x 3)))
+;;   ...)
+;;   
 
 ;; Emacs customization:
 ;;
