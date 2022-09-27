@@ -252,7 +252,7 @@
 
 
 (tests
- (test-case "(pitches->interval)"
+ (test-case "pitches->interval"
    (for-each
     (lambda (test)
       (let* ((p1 (car test))
@@ -285,7 +285,7 @@
      (list #{c#} #{cis#} (make <interval> #:number 1 #:quality 'augmented))
      (list #{cis#} #{cis#} (make <interval> #:number 1 #:quality 'perfect)))))
 
- (test-case "(compound? <interval>)"
+ (test-case "compound? <interval>"
    (for-each
     (lambda (test)
       (let* ((itv (car test))
@@ -306,7 +306,7 @@
           (cons (make <interval> #:number 9 #:quality 'major) #t) 
           (cons (make <interval> #:number 10 #:quality 'major) #t))))
 
- (test-case "(simple <interval>)"
+ (test-case "simple <interval>"
    (for-each
     (lambda (test)
       (let* ((itv (car test))
@@ -329,7 +329,7 @@
           (cons (make <interval> #:number 10 #:quality 'major) (make <interval> #:number 3 #:quality 'major))
           (cons (make <interval> #:number 19 #:quality 'perfect) (make <interval> #:number 5 #:quality 'perfect)))))
 
- (test-case "(compound <interval>)"
+ (test-case "compound <interval>"
    (for-each
     (lambda (test)
       (let* ((itv (car test))
@@ -352,7 +352,7 @@
           (cons (make <interval> #:number 10 #:quality 'major) (make <interval> #:number 10 #:quality 'major))
           (cons (make <interval> #:number 19 #:quality 'perfect) (make <interval> #:number 19 #:quality 'perfect)))))
 
- (test-case "(events!)"
+ (test-case "events!"
    (for-each
     (lambda (test)
       (let* ((m (car test))
@@ -480,7 +480,7 @@
                    (make <timed-note> #:moment (ly:make-moment 1/4) #:music (make-note #{c#} 2))
                    (make <timed-note> #:moment (ly:make-moment 3/4) #:music (make-note #{d#} 2))))))))
 
- (test-case "(events-split)"
+ (test-case "events-split"
    (for-each
     (lambda (test)
       (let* ((events (car test))
@@ -643,7 +643,7 @@
               #:figures
               (list (make <timed-figure> #:moment (ly:make-moment 2) #:music (first-element #{ \figuremode { <4>4 } #})))))))))
 
- (test-case "(get-voices <events>)"
+ (test-case "get-voices <events>"
    (for-each
     (lambda (test)
       (let* ((m (car test))
@@ -698,7 +698,7 @@
      ;;     (timed-note 3/4 #{g,#} 2) (timed-note 3/4 #{b#} 2) (timed-note 3/4 #{d'#} 2) (timed-note 3/4 #{g'#} 2)))))
      )))
 
- (test-case "(pitches <voices> <integer>)"
+ (test-case "pitches <voices> <integer>"
    (let ((input
           (make <voices>
             #:voice-count 4
@@ -722,7 +722,7 @@
       
       tests)))
 
- (test-case "(major-pitch-alist)"
+ (test-case "major-pitch-alist"
    (for-each
     (lambda (test)
       (let* ((input (car test))
@@ -740,7 +740,7 @@
       (((0 . 0) (1 . 0) (2 . 0) (3 . 0) (4 . 0) (5 . 0) (6 . 1)) . #f)
       (((0 . 0) (1 . 0) (2 . -1/2) (3 . 0) (4 . 0) (5 . -1/2) (6 . -1/2)) . #f))))
 
- (test-case "(minor-pitch-alist)"
+ (test-case "minor-pitch-alist"
    (for-each
     (lambda (test)
       (let* ((input (car test))
@@ -751,7 +751,7 @@
       (((5 . -1/2) (0 . 0) (1 . 0) (3 . 0) (4 . 0) (2 . -1/2) (6 . -1/2)) . #t)
       (((0 . 0) (1 . 0) (2 . 0) (3 . 0) (4 . 0) (5 . 0) (6 . 0)) . #f))))
 
- (test-case "(key-pitch-alist)"
+ (test-case "key-pitch-alist"
    (for-each
     (lambda (test)
       (test-case (with-output-to-string (lambda () (write-short (car test))))
@@ -802,7 +802,7 @@
           (cons #{ \key bes \major #} 'major-pitch-alist)
           (cons #{ \key bes \minor #} 'minor-pitch-alist))))
 
- (test-case "(parallel-consonance)"
+ (test-case "parallel-consonance"
    (for-each
     (lambda (test)
       (let* ((m (caar test))
@@ -841,7 +841,7 @@
           (cons (cons mThirteen 8) '())
           (cons (cons #{#} 5) '()))))
 
- (test-case "(augmented-second)"
+ (test-case "augmented-second"
    (for-each
     (lambda (test)
       (let* ((m (car  test))
@@ -858,7 +858,7 @@
                                #:moment-index 3
                                #:voice 3))))))
 
- (test-case "(unique)"
+ (test-case "unique"
    (for-each
     (lambda (test)
       (let* ((input (car test))
@@ -871,7 +871,7 @@
           (list '(1 2 1 3 2) < '(1 2 3))
           (list '("x" "z" "y" "x") string<? '("x" "y" "z")))))
 
- (test-case "(figures?)"
+ (test-case "figures?"
    (let ()
      (define (first-element music)
        (test-that eq? (ly:music-property music 'name) 'SequentialMusic)
@@ -885,7 +885,7 @@
       (list (cons #{\figuremode { <5> }#} #t)
             (cons #{{<e a g>}#} #f)))))
 
- (test-case "(< <interval> <interval>)"
+ (test-case "< <interval> <interval>"
    (for-each
     (lambda (test)
       (let* ((input (car test))
@@ -991,7 +991,7 @@
                  (make <interval> #:number 1 #:quality 'perfect))
            #f))))
   
- (test-case "(bass)"
+ (test-case "bass"
    (for-each
     (lambda (test)
       (let* ((input (car test))
@@ -1003,7 +1003,7 @@
           (cons (list #{d,#} #{e#} #{a#}) #{d,#}))))
 		    
 
- (test-case "(chord pitches)"
+ (test-case "chord pitches"
    (for-each
     (lambda (test)
       (let* ((input (car test))
@@ -1161,7 +1161,7 @@
                #:inversion 'root))
        ))))
 
- (test-case "(type <chord>)"
+ (test-case "type <chord>"
    (for-each
     (lambda (test)
       (let* ((input (car test))
@@ -1278,7 +1278,7 @@
                #:inversion 'root)
              'minor-ninth)))))
 
- (test-case "(semi-tones <interval>)"
+ (test-case "semi-tones <interval>"
    (for-each
     (lambda (test)
       (let* ((input (car test))
@@ -1349,7 +1349,7 @@
      (cons (make <interval> #:number 14 #:quality 'major) 23)
      (cons (make <interval> #:number 14 #:quality 'augmented) 24))))
 
- (test-case "(ascending <interval> pitch)"
+ (test-case "ascending <interval> pitch"
    (for-each
     (lambda (test)
       (let* ((input (car test))
@@ -1383,7 +1383,7 @@
            #{bis'#}))))
 
 
- (test-case "(music <chord> duration)"
+ (test-case "music <chord> duration"
    (let ((musics '()))
      (for-each
       (lambda (test)
@@ -1521,7 +1521,7 @@
                        'element (ly:music-deep-copy chords))
                       chords))))))))
 
- (test-case "(key-pitches)"
+ (test-case "key-pitches"
    (for-each
     (lambda (test)
       (let* ((input (car test))
@@ -1535,7 +1535,7 @@
           (cons (key #{cis#} major) #{cis dis eis fis gis ais bis#})
           (cons (key #{cis#} minor) #{cis dis e fis gis a b#}))))
 
- (test-case "(chord key bass figures)"
+ (test-case "chord key bass figures"
    (for-each
     (lambda (test)
       (let* ((input (car test))
@@ -1679,7 +1679,7 @@
                     #:inversion 'root))
             ))))
 
- (test-case "(active?)"
+ (test-case "active?"
    (for-each
     (lambda (test)
       (let* ((input (car test))
@@ -1716,7 +1716,7 @@
        (cons (list (make-infinite 1/2) (ly:make-moment 3/4)) #t)
        (cons (list (make-infinite 1/2) (ly:make-moment 2)) #t)))))
 
- (test-case "(finite-timed-musics/time)"
+ (test-case "finite-timed-musics/time"
    (for-each
     (lambda (test)
       (let* ((input (car test))
@@ -1747,7 +1747,7 @@
                      (list (finite 1 -2) (finite 3 2))
                      (list (finite 1 -2))))))))
 
- (test-case "(infinite-timed-musics/time)"
+ (test-case "infinite-timed-musics/time"
    (for-each
     (lambda (test)
       (let* ((input (car test))
@@ -1777,7 +1777,7 @@
                      (infinite 3)
                      (infinite 7/2)))))))
 
- (test-case "(degree)"
+ (test-case "degree"
    (for-each
     (lambda (test)
       (let* ((input (car test))
@@ -1802,7 +1802,7 @@
           (cons (list #{g#} #{f#}) 7)
           (cons (list #{g#} #{d''#}) 5))))
 
- (test-case "(best-duration-of-length)"
+ (test-case "best-duration-of-length"
    (for-each
     (lambda (test)
       (let* ((input (car test))
