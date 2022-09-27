@@ -53,17 +53,24 @@
   (let* ((source (assq-ref err 'source))
          (filename (or (assq-ref source 'filename) "?"))
          (line (cond ((assq-ref source 'line) => 1+) (else "?")))
-         (column (cond ((assq-ref source 'column) => 1+) (else "?"))))
-    (display filename (current-error-port))
-    (display ":" (current-error-port))
-    (display line (current-error-port))
-    (display ":" (current-error-port))
-    (display column (current-error-port))
-    (display ": in test " (current-error-port))
-    (write (assq-ref err 'test-path))
-    (display ": ")
-    (display (assq-ref err 'message))
-    (newline)))
+         (column (cond ((assq-ref source 'column) => 1+) (else "?")))
+         (*err* (current-error-port)))
+    (flush-all-ports)
+    (newline *err*)
+    (display filename *err*)
+    (display ":" *err*)
+    (display line *err*)
+    (display ":" *err*)
+    (display column *err*)
+    (display ": ERROR in test " *err*)
+    (write (assq-ref err 'test-path) *err*)
+    (display ": " *err*)
+    (display (assq-ref err 'message) *err*)
+    (newline *err*)
+    (let ((s (assq-ref err 'stack)))
+      (if s
+          (begin (display "STACK:" *err*) (newline *err*)
+                 (display-backtrace s *err*) (newline *err*))))))
 
 (define (tests-done)
   (if (not (null? *errors*))
@@ -112,19 +119,22 @@
                                        port)))))
                (set-current-test-path! new-test-path))
              (lambda ()
-               (catch #t
-                 (lambda () content ...)
-                 (lambda (key . args)
-                   (push-errors!
-                    (list
-                     (cons 'source 'loc)
-                     (cons 'test-path (reverse *current-test-path*))
-                     (cons 'message
-                           (string-append
-                            "an exception occurred with key: "
-                            (with-output-to-string (lambda () (write key)))
-                            " and args: "
-                            (with-output-to-string (lambda () (write args))))))))))
+               (let ((stack #f))
+                 (catch #t
+                   (lambda () content ...)
+                   (lambda (key . args)
+                     (push-errors!
+                      (list
+                       (cons 'source '())
+                       (cons 'stack stack)
+                       (cons 'test-path (reverse *current-test-path*))
+                       (cons 'message
+                             (string-append
+                              "an exception occurred with key: "
+                              (with-output-to-string (lambda () (write key)))
+                              " and args: "
+                              (with-output-to-string (lambda () (write args))))))))
+                   (lambda args (set! stack (make-stack #t))))))
              (lambda ()
                (set-current-test-path! previous-test-path)))))))
 
@@ -185,7 +195,8 @@
   (define-macro (test-case name . content)
     (let ((previous-test-path-symb (make-symbol "previous-test-path"))
           (new-test-path-symb (make-symbol "new-test-path"))
-          (push-errors!-symb (make-symbol "push-errors!")))
+          (push-errors!-symb (make-symbol "push-errors!"))
+          (stack-symb (make-symbol "stack")))
       `(let ((,previous-test-path-symb (,current-test-path))
              (,new-test-path-symb (cons ,name (,current-test-path)))
              (,push-errors!-symb ,push-errors!))
@@ -195,19 +206,22 @@
                    (error "(test-case) can't be used outside (tests)"))
                (,set-current-test-path! ,new-test-path-symb))
              (lambda ()
-               (catch #t
-                 (lambda () ,@content)
-                 (lambda (key . args)
-                   (,push-errors!-symb
-                    (list
-                     (cons 'source '())
-                     (cons 'test-path (reverse ,new-test-path-symb))
-                     (cons 'message
-                           (string-append
-                            "an exception occurred with key: "
-                            (with-output-to-string (lambda () (write key)))
-                            " and args: "
-                            (with-output-to-string (lambda () (write args))))))))))
+               (let ((,stack-symb #f))
+                 (catch #t
+                   (lambda () ,@content)
+                   (lambda (key . args)
+                     (,push-errors!-symb
+                      (list
+                       (cons 'source '())
+                       (cons 'stack (make-stack #t))
+                       (cons 'test-path (reverse ,new-test-path-symb))
+                       (cons 'message
+                             (string-append
+                              "an exception occurred with key: "
+                              (with-output-to-string (lambda () (write key)))
+                              " and args: "
+                              (with-output-to-string (lambda () (write args))))))))
+                   (lambda args (set! ,stack-symb (make-stack #t))))))
              (lambda () (,set-current-test-path! ,previous-test-path-symb))))))
   (define-macro (test-that pred got want)
     (let ((g-symb (make-symbol "g"))
