@@ -30,6 +30,11 @@
 
 (define (first-element m) (car (ly:music-property m 'elements)))
 
+(define (for-each-test fn tests)
+  (for-each
+   (lambda (args) (apply fn args))
+   tests))
+
 (define mOne #{
 \new PianoStaff <<
   \new Staff
@@ -246,18 +251,10 @@
 
 (tests
  (test-case "pitches->interval"
-   (for-each
-    (lambda (test)
-      (let* ((p1 (car test))
-             (p2 (cadr test))
-             (music
-              (make-music
-               'EventChord
-               'elements
-               (list (make-note p1 0) (make-note p2 0))))
-             (want (caddr test))
-             (got (pitches->interval p1 p2)))
-        (test-that equal? got want)))
+   (for-each-test
+    (lambda (p1 p2 want)
+      (test-case (format "~S ~S" p1 p2)
+        (test-that equal? (pitches->interval p1 p2) want)))
     (list
      (list #{c#} #{c'#} (make <interval> #:number 8 #:quality 'perfect))
      (list #{c#} #{c,#} (make <interval> #:number 8 #:quality 'perfect))
