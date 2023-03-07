@@ -658,12 +658,6 @@
       (let* ((m (car test))
              (want (cdr test))
              (got (get-voices (events! (ly:music-deep-copy m)))))
-        (add-score (scorify-music (ly:music-deep-copy m)))
-        (let ((lines (string-split (test-pretty-print got "    ") #\newline)))
-          (for-each
-           (lambda (line)
-             (add-text #{ \markup { \column { \wordwrap { $line } } } #}))
-           lines))
         (test-that equal? got want)))
     (list
      (cons
@@ -819,12 +813,6 @@
              (want (cdr test))
              (got (parallel-consonance (get-voices (events! (ly:music-deep-copy m)))
                                        (make <interval> #:number itv #:quality 'perfect))))
-        (add-score (scorify-music (ly:music-deep-copy m)))
-        (let ((lines (string-split (test-pretty-print got "    ") #\newline)))
-          (for-each
-           (lambda (line)
-             (add-text #{ \markup { \column { \wordwrap { $line } } } #}))
-           lines))
         (test-that equal? got want)))
     (list (cons (cons mFive 5)
                 (list (make <parallel-consonance>
@@ -856,12 +844,6 @@
       (let* ((m (car  test))
              (want (cdr test))
              (got (augmented-second (get-voices (events! (ly:music-deep-copy m))))))
-        (add-score (scorify-music (ly:music-deep-copy m)))
-        (let ((lines (string-split (test-pretty-print got "    ") #\newline)))
-          (for-each
-           (lambda (line)
-             (add-text #{ \markup { \column { \wordwrap { $line } } } #}))
-           lines))
         (test-that equal? got want)))
     (list (cons mSeven (list (make <augmented-second>
                                #:moment-index 3
