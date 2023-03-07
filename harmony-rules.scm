@@ -22,7 +22,6 @@
   #:use-module ((srfi srfi-1)
 		#:select (fold every concatenate))
   #:use-module (ice-9 receive)
-  #:use-module (ice-9 syncase)
   #:export (format-music
 	    dump-all
 	    <timed>
